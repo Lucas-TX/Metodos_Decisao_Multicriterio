@@ -45,30 +45,109 @@ with st.sidebar:
 # -------------------------------
 
 st.write("## Matriz de Comparação")
+st.info("Selecione o quanto o critério da linha é mais importante que o da coluna.")
 
 # Inicializa matriz
 matrix = np.ones((n, n))
 
 cols = st.columns(n)
 
+# ✅ Header das colunas
+header = st.columns(n + 1)
+header[0].markdown("**Critério**")
+
+for j in range(n):
+    header[j + 1].markdown(f"**{criteria[j]}**")
+
+# ✅ Matriz
 for i in range(n):
+    row = st.columns(n + 1)
+
+    # ✅ Nome da linha
+    row[0].markdown(f"**{criteria[i]}**")
+
     for j in range(n):
 
-        # UI dos complementares na matriz triangular inferior
+        # ✅ Diagonal
+        if i == j:
+            matrix[i, j] = 1
+            row[j + 1].markdown("**1**")
 
-        # UI dos Inputs das comparações na matriz triangular superior
-        if i < j:
-            value = cols[j].selectbox(
-                f"{criteria[i]} vs {criteria[j]}",
+        # ✅ Triângulo superior (input)
+        elif i < j:
+            value = row[j + 1].selectbox(
+                label="",
                 options=ahp_scale,
                 format_func=lambda x: str(Fraction(x).limit_denominator()),
-                key=f"{i}-{j}"
+                key=f"{i}-{j}",
+                label_visibility="collapsed"
             )
+
             matrix[i, j] = value
             matrix[j, i] = 1 / value
 
+        # ✅ Triângulo inferior (automático)
+        else:
+            inverse = matrix[i, j]
 
-# TODO Inserir o resto da matriz em disabled 
+            row[j + 1].markdown(
+                f"<span style='color:gray'><b>{str(Fraction(inverse).limit_denominator())}</b></span>",
+                unsafe_allow_html=True
+            )
+
+# -------------------------------
+# Cálculo da soma das colunas e normalização
+# -------------------------------
+
+column_sums = matrix.sum(axis=0)
+
+column_sums_df = pd.DataFrame(
+    [column_sums],
+    columns=criteria,
+    index=["Soma das Colunas"]
+)
+
+st.write("## Soma das Colunas")
+
+st.dataframe(
+    column_sums_df.style.format("{:.4f}"),
+    use_container_width=True
+)
+
+normalized_matrix = matrix / column_sums
+
+normalized_df = pd.DataFrame(
+    normalized_matrix,
+    index=criteria,
+    columns=criteria
+)
+
+st.write("## Matriz Normalizada")
+
+st.dataframe(
+    normalized_df.style.format("{:.4f}"),
+    use_container_width=True
+)
+
+priority_vector = normalized_matrix.mean(axis=1)
+
+priority_df = pd.DataFrame({
+    "Critério": criteria,
+    "Peso": priority_vector,
+    "Peso (%)": priority_vector * 100
+})
+
+st.write("## Autovetor principal-Vetor de Prioridade")
+
+st.dataframe(
+    priority_df.style.format({
+        "Peso": "{:.4f}",
+        "Peso (%)": "{:.2f}%"
+    }),
+    use_container_width=True
+)
+
+
 
 # -------------------------------
 # Funções AHP
