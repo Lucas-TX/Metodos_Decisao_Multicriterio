@@ -147,6 +147,58 @@ st.dataframe(
     use_container_width=True
 )
 
+# -------------------------------
+# Vetor ponderado (A * w)
+# -------------------------------
+
+weighted_sum = matrix.dot(priority_vector)
+
+weighted_df = pd.DataFrame({
+    "Critério": criteria,
+    "A * w": weighted_sum
+})
+
+st.write("## Vetor Ponderado (A * w)")
+
+st.dataframe(
+    weighted_df.style.format({
+        "A * w": "{:.4f}"
+    }),
+    use_container_width=True
+)
+
+# -------------------------------
+# Vetor de consistência
+# -------------------------------
+
+consistency_vector = weighted_sum / priority_vector
+
+consistency_df = pd.DataFrame({
+    "Critério": criteria,
+    "(A*w)/w": consistency_vector
+})
+
+st.write("## Vetor de Consistência")
+
+st.dataframe(
+    consistency_df.style.format({
+        "(A*w)/w": "{:.4f}"
+    }),
+    use_container_width=True
+)
+
+# -------------------------------
+# Autovalor principal (λmax)
+# -------------------------------
+
+lambda_max = consistency_vector.mean()
+
+st.write("## Autovalor Principal (λmax)")
+
+st.metric(
+    label="λmax",
+    value=f"{lambda_max:.4f}"
+)
 
 
 # -------------------------------
