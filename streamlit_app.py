@@ -202,6 +202,56 @@ st.metric(
 
 
 # -------------------------------
+# CI (Consistency Index)
+# -------------------------------
+
+n = len(criteria)
+
+CI = (lambda_max - n) / (n - 1)
+
+
+# -------------------------------
+# RI (Random Index - tabela Saaty)
+# -------------------------------
+
+ri_table = {
+    1: 0.00,
+    2: 0.00,
+    3: 0.58,
+    4: 0.90,
+    5: 1.12,
+    6: 1.24,
+    7: 1.32,
+    8: 1.41,
+    9: 1.45,
+    10: 1.49
+}
+
+RI = ri_table.get(n, None)
+
+# -------------------------------
+# CR (Consistency Ratio)
+# -------------------------------
+
+CR = CI / RI if RI and RI != 0 else None
+
+st.write("## Índices de Consistência")
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("λmax", f"{lambda_max:.4f}")
+col2.metric("CI", f"{CI:.4f}")
+
+if CR is not None:
+    col3.metric("CR", f"{CR:.4f}")
+
+if CR is not None:
+    if CR <= 0.1:
+        st.success("Matriz consistente (CR ≤ 0.1)")
+    else:
+        st.error("Matriz inconsistente (CR > 0.1)")
+
+# -------------------------------
 # Funções AHP
 # -------------------------------
 def calculate_priority_vector(matrix):
