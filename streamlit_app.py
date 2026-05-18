@@ -6,11 +6,9 @@ from fractions import Fraction
 
 # Escala AHP (Saaty) discreta
 ahp_scale = [
-    1/9, 1/8, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2,
-    1,
+    1,1/9, 1/8, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2,
     2, 3, 4, 5, 6, 7, 8, 9
 ]
-
 
 # -----------------------------
 # UI
@@ -63,17 +61,17 @@ for j in range(n):
 for i in range(n):
     row = st.columns(n + 1)
 
-    # ✅ Nome da linha
+    # Nome da linha
     row[0].markdown(f"**{criteria[i]}**")
 
     for j in range(n):
 
-        # ✅ Diagonal
+        # Diagonal
         if i == j:
             matrix[i, j] = 1
             row[j + 1].markdown("**1**")
 
-        # ✅ Triângulo superior (input)
+        # Triângulo superior (input)
         elif i < j:
             value = row[j + 1].selectbox(
                 label="",
@@ -86,7 +84,7 @@ for i in range(n):
             matrix[i, j] = value
             matrix[j, i] = 1 / value
 
-        # ✅ Triângulo inferior (automático)
+        # Triângulo inferior (automático)
         else:
             inverse = matrix[i, j]
 
@@ -239,79 +237,14 @@ st.write("## Índices de Consistência")
 
 col1, col2, col3 = st.columns(3)
 
-col1.metric("λmax", f"{lambda_max:.4f}")
-col2.metric("CI", f"{CI:.4f}")
+col1.metric("λmax", f"{lambda_max:.5f}")
+col2.metric("CI", f"{CI:.5f}")
 
 if CR is not None:
-    col3.metric("CR", f"{CR:.4f}")
+    col3.metric("CR", f"{CR * 100:.2f}%")
 
 if CR is not None:
     if CR <= 0.1:
-        st.success("Matriz consistente (CR ≤ 0.1)")
+        st.success("Matriz consistente (CR ≤ 10%)")
     else:
-        st.error("Matriz inconsistente (CR > 0.1)")
-
-# -------------------------------
-# Funções AHP
-# -------------------------------
-def calculate_priority_vector(matrix):
-    col_sum = matrix.sum(axis=0)
-    norm_matrix = matrix / col_sum
-    priority_vector = norm_matrix.mean(axis=1)
-    return priority_vector
-
-def calculate_lambda_max(matrix, priority_vector):
-    weighted_sum = matrix @ priority_vector
-    lambda_max = (weighted_sum / priority_vector).mean()
-    return lambda_max
-
-def calculate_consistency_ratio(matrix, priority_vector):
-    n = matrix.shape[0]
-    
-    RI_dict = {
-        1: 0, 2: 0, 3: 0.58, 4: 0.90, 5: 1.12,
-        6: 1.24, 7: 1.32, 8: 1.41, 9: 1.45, 10: 1.49
-    }
-    
-    lambda_max = calculate_lambda_max(matrix, priority_vector)
-    CI = (lambda_max - n) / (n - 1)
-    RI = RI_dict.get(n, 1.49)
-    
-    CR = CI / RI if RI != 0 else 0
-    
-    return lambda_max, CI, CR
-
-# -------------------------------
-# Cálculo
-# -------------------------------
-if st.button("Calcular AHP"):
-
-    priority_vector = calculate_priority_vector(matrix)
-    lambda_max, CI, CR = calculate_consistency_ratio(matrix, priority_vector)
-
-    # -------------------------------
-    # Resultados
-    # -------------------------------
-    st.write("## ✅ Resultados")
-
-    df = pd.DataFrame({
-        "Critério": criteria,
-        "Peso": priority_vector
-    }).sort_values(by="Peso", ascending=False)
-
-    st.dataframe(df, use_container_width=True)
-
-    # Métricas
-    col1, col2, col3 = st.columns(3)
-    col1.metric("λ máximo", round(lambda_max, 4))
-    col2.metric("CI", round(CI, 4))
-    col3.metric("CR", round(CR, 4))
-
-    # Consistência
-    if CR <= 0.1:
-        st.success("✅ Consistência aceitável (CR ≤ 0.1)")
-    else:
-        st.error("⚠️ Consistência alta! Revise os julgamentos.")
-
-    # Gráfico
-    st.bar_chart(df.set_index("Critério"))
+        st.warning("Matriz inconsistente (CR > 10%)")
