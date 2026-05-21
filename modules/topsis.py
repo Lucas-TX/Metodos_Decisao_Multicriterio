@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from services.topsis_calc import calcular_topsis
 
 def show():
 
@@ -105,7 +106,7 @@ def show():
     st.subheader("Matriz de decisão")
 
     matriz_inicial = pd.DataFrame(
-        data=np.zeros((qtd_criterios, qtd_alternativas)),
+        data=np.ones((qtd_criterios, qtd_alternativas)),
         index=criterios,
         columns=alternativas
     )
@@ -148,10 +149,186 @@ def show():
     )
 
     # =========================
-    # BOTÃO FUTURO PARA EXECUÇÃO
+    # EXECUÇÃO E VISUALIZAÇÃO DOS RESULTADOS
     # =========================
 
-    executar = st.button("Executar TOPSIS", type="primary")
+    st.subheader("Resultado do TOPSIS")
 
-    if executar:
-        st.info("Nesta etapa, o cálculo TOPSIS ainda não foi implementado.")
+    executar_topsis = st.button("Executar TOPSIS", type="primary")
+
+    if executar_topsis:
+        resultado = calcular_topsis(
+            matrix=matriz_decisao.values,
+            weights=pesos,
+            criteria_types=tipos_criterios
+        )
+
+        st.session_state["topsis_resultado"] = resultado
+        st.session_state["topsis_criterios"] = criterios
+        st.session_state["topsis_alternativas"] = alternativas
+        st.session_state["topsis_pesos"] = pesos
+        st.session_state["topsis_tipos_criterios"] = tipos_criterios
+
+    if "topsis_resultado" in st.session_state:
+
+        resultado = st.session_state["topsis_resultado"]
+        criterios = st.session_state["topsis_criterios"]
+        alternativas = st.session_state["topsis_alternativas"]
+        pesos = st.session_state["topsis_pesos"]
+        tipos_criterios = st.session_state["topsis_tipos_criterios"]
+
+        aba_final, aba_pesos, aba_normalizacao, aba_ponderada, aba_ideais, aba_distancias = st.tabs([
+            "Resultado Final",
+            "Pesos",
+            "Normalização",
+            "Matriz Ponderada",
+            "Soluções Ideais",
+            "Distâncias"
+        ])
+
+        # =========================
+        # RESULTADO FINAL
+        # =========================
+
+        with aba_final:
+            df_resultado = pd.DataFrame({
+                "Alternativa": alternativas,
+                "Ranking": resultado["ranking_positions"],
+                "Score TOPSIS": resultado["scores"],
+                "Distância Ideal Positiva": resultado["distance_positive"],
+                "Distância Ideal Negativa": resultado["distance_negative"]                
+            })
+
+            df_resultado = df_resultado.sort_values("Ranking")
+
+            melhor_alternativa = df_resultado.iloc[0]["Alternativa"]
+            melhor_score = df_resultado.iloc[0]["Score TOPSIS"]
+
+            st.metric(
+                label="Melhor alternativa",
+                value=melhor_alternativa,
+                delta=f"Score: {melhor_score:.4f}"
+            )
+
+            st.subheader("Ranking final")
+
+            st.dataframe(
+                df_resultado,
+                use_container_width=True
+            )
+
+            st.subheader("Gráfico do Score TOPSIS")
+
+            st.bar_chart(
+                df_resultado.set_index("Alternativa")["Score TOPSIS"]
+            )
+
+        # =========================
+        # PESOS
+        # =========================
+
+        with aba_pesos:
+            df_pesos = pd.DataFrame({
+                "Critério": criterios,
+                "Peso Original": resultado["weights"],
+                "Peso Normalizado": resultado["normalized_weights"]
+            })
+
+            st.subheader("Pesos")
+
+            st.dataframe(
+                df_pesos,
+                use_container_width=True
+            )
+       
+        # =========================
+        # NORMALIZAÇÃO
+        # =========================
+
+        with aba_normalizacao:
+            df_normalizacao = pd.DataFrame({
+                "Critério": criterios,
+                "Soma dos Quadrados": resultado["row_square_sums"],
+                "Raiz da Soma dos Quadrados": resultado["row_norms"]
+            })
+
+            st.subheader("Cálculo da normalização")
+
+            st.dataframe(
+                df_normalizacao,
+                use_container_width=True
+            )
+
+            df_matriz_normalizada = pd.DataFrame(
+                resultado["normalized_matrix"],
+                index=criterios,
+                columns=alternativas
+            )
+
+            st.subheader("Matriz normalizada")
+
+            st.dataframe(
+                df_matriz_normalizada,
+                use_container_width=True
+            )
+
+        # =========================
+        # MATRIZ PONDERADA
+        # =========================
+
+        with aba_ponderada:
+            df_matriz_ponderada = pd.DataFrame(
+                resultado["weighted_normalized_matrix"],
+                index=criterios,
+                columns=alternativas
+            )
+
+            st.subheader("Matriz normalizada ponderada")
+
+            st.dataframe(
+                df_matriz_ponderada,
+                use_container_width=True
+            )
+
+        # =========================
+        # SOLUÇÕES IDEAIS
+        # =========================
+
+        with aba_ideais:
+            df_ideais = pd.DataFrame({
+                "Critério": criterios,
+                "Tipo": tipos_criterios,
+                "Ideal Positiva": resultado["ideal_positive"],
+                "Ideal Negativa": resultado["ideal_negative"]
+            })
+
+            st.subheader("Soluções ideais")
+
+            st.dataframe(
+                df_ideais,
+                use_container_width=True
+            )
+
+        # =========================
+        # DISTÂNCIAS
+        # =========================
+
+        with aba_distancias:
+            df_distancias = pd.DataFrame({
+                "Alternativa": alternativas,
+                "Ranking": resultado["ranking_positions"],
+                "Score TOPSIS": resultado["scores"],
+                "Distância Ideal Positiva": resultado["distance_positive"],
+                "Distância Ideal Negativa": resultado["distance_negative"]               
+            })
+
+            df_distancias = df_distancias.sort_values("Ranking")
+
+            st.subheader("Distâncias e scores")
+
+            st.dataframe(
+                df_distancias,
+                use_container_width=True
+            )
+
+
