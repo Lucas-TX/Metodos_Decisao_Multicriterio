@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Importa as páginas com cada método
-from modules import ahp, topsis
+from modules import ahp,dematel, topsis
 
 # -----------------------------
 # Estado inicial
@@ -30,7 +30,8 @@ def show_menu():
             st.rerun()
 
         if st.button("DEMATEL"):
-            set_page("dematel")
+            st.session_state.page = "dematel"
+            st.rerun()
 
     with col2:
         if st.button("TOPSIS"):
@@ -38,7 +39,8 @@ def show_menu():
             st.rerun()
 
         if st.button("PROMETHEE"):
-            set_page("promethee")
+            st.session_state.page = "promethee"
+            st.rerun()
 
 
 # -----------------------------
@@ -56,9 +58,7 @@ elif page == "topsis":
     topsis.show()
 
 elif page == "dematel":
-    st.title("DEMATEL")
-    if st.button("⬅ Voltar"):
-        set_page("menu")
+    dematel.show()
 
 elif page == "promethee":
     st.title("PROMETHEE")

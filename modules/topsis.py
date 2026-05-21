@@ -330,5 +330,3 @@ def show():
                 df_distancias,
                 use_container_width=True
             )
-
-
