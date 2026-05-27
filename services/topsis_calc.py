@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def calcular_topsis(matrix, weights, criteria_types):
     """
     Executa o método TOPSIS.
