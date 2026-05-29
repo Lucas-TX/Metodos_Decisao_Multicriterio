@@ -25,23 +25,23 @@ def show():
         "Tipo 2: U-Shape",
         "Tipo 3: V-Shape",
         "Tipo 4: Nível",
-        "Tipo 5: V-Shape com indiferença",
+        "Tipo 5: Linear",
         "Tipo 6: Gaussiano",
     ]
 
     QUAL_SCALES = {
-        "5 pontos": ["Muito ruim", "Ruim", "Médio", "Bom", "Muito bom"],
+        "5 pontos": ["1", "2", "3", "4", "5"],
         "10 pontos": ["1", "2", "3", "4", "5", "6", "7", "8", "9","10"],
         "Binário (Não/Sim)": ["Não", "Sim"],
     }
 
     QUAL_TO_NUM = {
         "5 pontos": {
-            "Muito ruim": 1,
-            "Ruim": 2,
-            "Médio": 3,
-            "Bom": 4,
-            "Muito bom": 5,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+            "5": 5,
         },
         "10 pontos": {
             "1": 1,
@@ -74,7 +74,7 @@ def show():
             "desc": "Usa q e p. Até q há indiferença; entre q e p há preferência intermediária; acima de p há preferência total.",
             "params": ["q", "p"]
         },
-        "Tipo 5: V-Shape com indiferença": {
+        "Tipo 5: Linear": {
             "desc": "Usa q e p. Até q há indiferença; de q até p a preferência cresce linearmente; acima de p há preferência total.",
             "params": ["q", "p"]
         },
@@ -221,7 +221,7 @@ def show():
             pp = max(p, qq + 1e-9)
             y = np.where(x <= qq, 0.0, np.where(x <= pp, 0.5, 1.0))
 
-        elif func_name == "Tipo 5: V-Shape com indiferença":
+        elif func_name == "Tipo 5: Linear":
             qq = q
             pp = max(p, qq + 1e-9)
             y = np.where(x <= qq, 0.0, np.where(x < pp, (x - qq) / (pp - qq), 1.0))
@@ -276,7 +276,7 @@ def show():
 
     num_alternatives = st.sidebar.number_input(
         "Quantidade de alternativas",
-        min_value=1,
+        min_value=2,
         max_value=50,
         value=4,
         step=1
@@ -303,7 +303,7 @@ def show():
     align_matrix()
 
     # =========================================================
-    # Main
+    # Main Screen
     # =========================================================
     st.title("Configuração da Interface")
     st.caption("UI para cadastro de critérios, alternativas, funções de preferência e matriz de decisão.")

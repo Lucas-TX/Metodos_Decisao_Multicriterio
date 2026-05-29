@@ -1,13 +1,10 @@
-# promethee_calc.py
-
 from __future__ import annotations
-
 import math
 from typing import Dict, List, Any
-
 import numpy as np
 import pandas as pd
 
+#TODO #2 Validar cálculo Promethee com exemplo conhecido (ex: Brans 1986) para garantir que as fórmulas estão corretas e os resultados fazem sentido.
 
 # =========================================================
 # Funções de preferência
@@ -23,7 +20,7 @@ def preference_degree(
     Calcula o grau de preferência P(d) no intervalo [0, 1].
 
     Premissa:
-    - d > 0 significa que a alternativa a é melhor que b no critério.
+    - d > 0 significa que a alternativa 'a' é melhor que 'b' no critério.
     - d <= 0 implica ausência de preferência (P = 0).
     """
     if pd.isna(d):
@@ -51,7 +48,7 @@ def preference_degree(
             return 0.5
         return 1.0
 
-    if func_name == "Tipo 5: V-Shape com indiferença":
+    if func_name == "Tipo 5: Linear":
         if d <= q:
             return 0.0
         pp = max(float(p), float(q) + 1e-12)
@@ -72,22 +69,13 @@ def preference_degree(
 # Validação / preparação
 # =========================================================
 def _validate_inputs(criteria: List[Dict[str, Any]], decision_df_numeric: pd.DataFrame) -> None:
-    if not isinstance(criteria, list) or len(criteria) == 0:
-        raise ValueError("A lista de critérios está vazia.")
-
-    if not isinstance(decision_df_numeric, pd.DataFrame) or decision_df_numeric.empty:
-        raise ValueError("A matriz de decisão numérica está vazia.")
-
+    
     criterion_names = [c["name"] for c in criteria]
     missing_cols = [name for name in criterion_names if name not in decision_df_numeric.columns]
     if missing_cols:
         raise ValueError(
             f"As seguintes colunas estão ausentes na matriz de decisão: {missing_cols}"
         )
-
-    if len(decision_df_numeric.index) < 2:
-        raise ValueError("O PROMETHEE requer pelo menos 2 alternativas.")
-
 
 def _normalized_weights(criteria: List[Dict[str, Any]]) -> np.ndarray:
     weights = np.array([float(c.get("peso", 0.0)) for c in criteria], dtype=float)
