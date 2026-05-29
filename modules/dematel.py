@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 
 def show():
 
+    # TODO #1 Implementar opção de input da matriz por vários usuários. Depois calcula-se a média para cada célula e executa o DEMATEL com a matriz média.
+
     st.title("DEMATEL - Decision Making Trial and Evaluation Laboratory")
 
     if st.button("⬅ Voltar"):
